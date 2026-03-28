@@ -1,5 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:url_launcher/url_launcher.dart';
+ import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -9,139 +13,126 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  bool? isChecked = false;
+  bool isChecked = false;
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController surnameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController subjectController = TextEditingController();
+  final TextEditingController messageController = TextEditingController();
+
+  void openLink(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Link açılamadı: $url")),
+      );
+    }
+  }
+
+ 
+
+void sendEmail() async {
+  final Uri params = Uri(
+    scheme: 'mailto',
+    path: 'yesimgunduz366@gmail.com',
+    query: 'subject=${subjectController.text}&body=Name: ${nameController.text}\nSurname: ${surnameController.text}\nPhone: ${phoneController.text}\nEmail: ${emailController.text}\nMessage: ${messageController.text}',
+  );
+
+  if (await canLaunchUrl(params)) {
+    await launchUrl(params);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Mail uygulaması açılamadı")),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        // ⭐ tüm Row'u yatay ve dikey ortala
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: IntrinsicHeight(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // yatayda ortala
-              crossAxisAlignment: CrossAxisAlignment.center, // dikeyde ortala
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 🔹 SOL (Contact Us)
                 Expanded(
                   flex: 1,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center, // dikey ortala
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "Contact Us",
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       Container(width: 60, height: 3, color: Colors.orange),
                     ],
                   ),
                 ),
 
-                SizedBox(width: 30),
+                const SizedBox(width: 30),
 
-                // 🔹 SAĞ (FORM)
                 Expanded(
                   flex: 2,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center, // dikey ortala
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: "Name",
-                                labelStyle: TextStyle(color: Colors.black),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.orange),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
+                            child: _buildTextField(
+                                controller: nameController, label: "Name"),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: "Surname",
-                                labelStyle: TextStyle(color: Colors.black),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.orange),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
+                            child: _buildTextField(
+                                controller: surnameController, label: "Surname"),
                           ),
                         ],
                       ),
-
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: "Phone Number",
-                                labelStyle: TextStyle(color: Colors.black),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.orange),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
+                            child: _buildTextField(
+                                controller: phoneController,
+                                label: "Phone Number",
+                                keyboardType: TextInputType.phone),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: "Email",
-                                labelStyle: TextStyle(color: Colors.black),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.orange),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
+                            child: _buildTextField(
+                                controller: emailController,
+                                label: "Email",
+                                keyboardType: TextInputType.emailAddress),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 20),
 
-                      SizedBox(height: 20),
+                      _buildTextField(
+                          controller: subjectController, label: "Subject"),
+                      const SizedBox(height: 20),
 
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: "Subject",
-                          labelStyle: TextStyle(color: Colors.black),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.orange),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
+                      _buildTextField(
+                          controller: messageController,
+                          label: "Enter Message",
+                          minLines: 3,
+                          maxLines: null),
+                      const SizedBox(height: 20),
 
-                      SizedBox(height: 20),
-
-                      TextField(
-                        minLines: 3,
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          labelText: "Enter Message",
-                          labelStyle: TextStyle(color: Colors.black),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.orange),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
                       Row(
                         children: [
                           Checkbox(
@@ -155,43 +146,36 @@ class _HomepageState extends State<Homepage> {
                           Expanded(
                             child: RichText(
                               text: TextSpan(
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.black,
-                                ), // normal metin
+                                ),
                                 children: [
+                                  const TextSpan(
+                                      text:
+                                          "Kampanya ve yeniliklerden haberdar olmak istiyorum. Paylaştığım kişisel bilgilerin "),
                                   TextSpan(
-                                    text:
-                                        "Kampanya ve yeniliklerden haberdar olmak istiyorum. Paylaştığım kişisel bilgilerin ",
-                                  ),
-                                  TextSpan(
-                                    text: "Aydınlatma Metni", 
-                                    style: TextStyle(
+                                    text: "Aydınlatma Metni",
+                                    style: const TextStyle(
                                       color: Colors.orange,
-                                      decoration: TextDecoration
-                                          .underline, 
+                                      decoration: TextDecoration.underline,
                                     ),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () {
-                                        
-                                        launchUrl(
-                                          Uri.parse(
-                                            "https://example.com/aydinlatma",
-                                          ),
-                                        );
+                                        openLink(
+                                            "https://example.com/aydinlatma");
                                       },
                                   ),
-                                  TextSpan(
-                                    text:
-                                        " kapsamında işlenmesine izin veriyorum. İptal hakkım saklıdır.*",
-                                  ),
+                                  const TextSpan(
+                                      text:
+                                          " kapsamında işlenmesine izin veriyorum. İptal hakkım saklıdır.*"),
                                 ],
                               ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -201,8 +185,8 @@ class _HomepageState extends State<Homepage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {},
-                        child: Text("Send Email"),
+                        onPressed: sendEmail,
+                        child: const Text("Send Email"),
                       ),
                     ],
                   ),
@@ -215,5 +199,26 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  void launchUrl(Uri parse) {}
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    int? minLines = 1,
+    int? maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      minLines: minLines,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.black),
+        border: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.orange),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
 }
